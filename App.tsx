@@ -86,7 +86,12 @@ function AppContent({ userRole, userStatus, onLogout, userName }: { userRole: Us
             </div>
         )}
 
-        <Navbar toggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)} />
+        {/* Updated Navbar with Logout Prop */}
+        <Navbar 
+            toggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+            onLogout={onLogout} 
+            userName={userName}
+        />
         
         <main className="flex-1 overflow-y-auto pb-24 scroll-smooth">
           <div className="min-h-full">
