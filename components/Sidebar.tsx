@@ -1,6 +1,6 @@
 import React from 'react';
 import { ViewState, UserRole } from '../types';
-import { Radio, Mic2, Calendar, MessageSquare, LogOut, Disc, Shield, Users, Download, Settings, Globe } from 'lucide-react';
+import { Radio, Mic2, Calendar, MessageSquare, LogOut, Disc, Shield, Download, Settings, Globe, Headphones, Music4 } from 'lucide-react';
 import { LOGO_URL } from '../assets';
 
 interface SidebarProps {
@@ -30,6 +30,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, userRole
               { id: 'events', label: 'Agenda Local', icon: Calendar },
           ];
       }
+      if (userRole === 'producer') {
+          return [
+              { id: 'discovery', label: 'Explorar Talentos', icon: Globe },
+              { id: 'producer_portfolio', label: 'Mi Portfolio', icon: Headphones },
+              { id: 'messages', label: 'Mensajes', icon: MessageSquare },
+          ];
+      }
       // Default: Artist
       return [
           { id: 'discovery', label: 'Explorar', icon: Globe },
@@ -48,6 +55,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, userRole
         <img src={LOGO_URL} alt="EMERHIT" className="h-8 object-contain" />
         {userRole === 'admin' && <span className="ml-2 text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded font-bold">ADMIN</span>}
         {userRole === 'radio' && <span className="ml-2 text-[10px] bg-blue-500 text-white px-1.5 py-0.5 rounded font-bold">RADIO</span>}
+        {userRole === 'producer' && <span className="ml-2 text-[10px] bg-purple-500 text-white px-1.5 py-0.5 rounded font-bold">PROD</span>}
       </div>
 
       {/* Navigation */}
@@ -75,10 +83,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, userRole
           );
         })}
 
-        {userRole === 'artist' && (
+        {(userRole === 'artist' || userRole === 'producer') && (
             <>
                 <div className="px-3 mt-8 mb-4">
-                    <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Tu Librería</h3>
+                    <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Tu Material</h3>
                 </div>
                 <button 
                     onClick={() => setView('my_tracks')}
@@ -86,7 +94,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, userRole
                     ${currentView === 'my_tracks' ? 'bg-zinc-900 text-white' : 'text-zinc-400 hover:text-white hover:bg-zinc-900/50'}`}
                 >
                     <Disc size={20} className={currentView === 'my_tracks' ? 'text-green-500' : 'text-zinc-500'} />
-                    Mis Tracks
+                    {userRole === 'producer' ? 'Mis Beats/Demos' : 'Mis Tracks'}
                 </button>
             </>
         )}

@@ -1,4 +1,4 @@
-import { Artist, RadioStation, Track, Message, Event } from './types';
+import { Artist, RadioStation, Track, Message, Event, Producer } from './types';
 import { DEFAULT_AVATAR } from './assets';
 
 // --- TRACKS ---
@@ -112,6 +112,7 @@ export const MOCK_ARTISTS: Artist[] = [
   {
     id: 'a1',
     role: 'artist',
+    status: 'active',
     name: 'Luna Creciente',
     email: 'contacto@lunacreciente.cl',
     paymentStatus: 'premium',
@@ -131,6 +132,7 @@ export const MOCK_ARTISTS: Artist[] = [
   {
     id: 'a2',
     role: 'artist',
+    status: 'active',
     name: 'Los Ecos',
     email: 'management@losecos.com',
     paymentStatus: 'free',
@@ -149,6 +151,7 @@ export const MOCK_ARTISTS: Artist[] = [
   {
     id: 'a3',
     role: 'artist',
+    status: 'active',
     name: 'Neon City',
     email: 'booking@neoncity.co',
     paymentStatus: 'premium',
@@ -167,6 +170,7 @@ export const MOCK_ARTISTS: Artist[] = [
   {
     id: 'a4',
     role: 'artist',
+    status: 'active',
     name: 'La Marea',
     email: 'contacto@lamarea.pe',
     paymentStatus: 'premium',
@@ -184,6 +188,7 @@ export const MOCK_ARTISTS: Artist[] = [
   {
       id: 'a5',
       role: 'artist',
+      status: 'pending', // Pending evaluation
       name: 'Solaris',
       email: 'hola@solaris.mx',
       paymentStatus: 'free',
@@ -200,11 +205,31 @@ export const MOCK_ARTISTS: Artist[] = [
   }
 ];
 
+// --- PRODUCERS ---
+export const MOCK_PRODUCERS: Producer[] = [
+    {
+        id: 'p1',
+        role: 'producer',
+        status: 'active',
+        name: 'BeatMaster Pro',
+        email: 'beats@masterpro.com',
+        bio: 'Productor musical con 10 años de experiencia en música urbana y electrónica.',
+        specialties: ['Mixing', 'Mastering', 'Beatmaking'],
+        location: { city: 'Medellín', country: 'Colombia', display: 'Medellín, Colombia' },
+        avatarUrl: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?q=80&w=400&auto=format&fit=crop',
+        socials: {
+            instagram: '@beatmaster',
+            website: 'www.beatmaster.com'
+        }
+    }
+];
+
 // --- RADIOS ---
 export const MOCK_RADIOS: RadioStation[] = [
   {
     id: 'r1',
     role: 'radio',
+    status: 'active',
     name: 'Radio Valparaíso Indie',
     email: 'programacion@valpaindie.cl',
     location: { city: 'Valparaíso', country: 'Chile', display: 'Valparaíso, Chile' },
@@ -216,6 +241,7 @@ export const MOCK_RADIOS: RadioStation[] = [
   {
     id: 'r2',
     role: 'radio',
+    status: 'active',
     name: 'Estación Futuro',
     email: 'contacto@estacionfuturo.ar',
     location: { city: 'Buenos Aires', country: 'Argentina', display: 'Buenos Aires, Argentina' },
@@ -227,6 +253,7 @@ export const MOCK_RADIOS: RadioStation[] = [
   {
     id: 'r3',
     role: 'radio',
+    status: 'pending', // Pending evaluation
     name: 'Selva Stereo',
     email: 'hola@selvastereo.pe',
     location: { city: 'Iquitos', country: 'Perú', display: 'Iquitos, Perú' },

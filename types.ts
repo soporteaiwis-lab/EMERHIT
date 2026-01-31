@@ -8,11 +8,13 @@ export interface SocialLinks {
   twitter?: string;
 }
 
-export type UserRole = 'artist' | 'radio' | 'admin';
+export type UserRole = 'artist' | 'radio' | 'admin' | 'producer';
+export type UserStatus = 'active' | 'pending' | 'rejected';
 
 export interface UserBase {
   id: string;
   role: UserRole;
+  status: UserStatus; // New field for evaluation process
   email: string;
   name: string;
   avatarUrl: string;
@@ -32,6 +34,7 @@ export interface Artist extends UserBase {
   socials: SocialLinks;
   tracks: Track[];
   events: Event[];
+  demoUrl?: string; // For application
 }
 
 export interface RadioStation extends UserBase {
@@ -39,6 +42,14 @@ export interface RadioStation extends UserBase {
   frequency: string;
   licenseType: 'community' | 'commercial' | 'online';
   genreFocus: string[];
+}
+
+export interface Producer extends UserBase {
+  role: 'producer';
+  bio: string;
+  specialties: string[]; // e.g. 'Mixing', 'Mastering', 'Beatmaking'
+  portfolioUrl?: string;
+  socials: SocialLinks;
 }
 
 export interface AdminUser extends UserBase {
@@ -83,4 +94,4 @@ export interface Message {
   readStatus: boolean;
 }
 
-export type ViewState = 'discovery' | 'artist_profile' | 'messages' | 'events' | 'my_tracks' | 'admin_dashboard' | 'radio_downloads';
+export type ViewState = 'discovery' | 'artist_profile' | 'messages' | 'events' | 'my_tracks' | 'admin_dashboard' | 'radio_downloads' | 'producer_portfolio';

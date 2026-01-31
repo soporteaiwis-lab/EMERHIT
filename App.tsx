@@ -9,10 +9,10 @@ import { LandingPage } from './components/LandingPage';
 import { AdminDashboard } from './components/AdminDashboard';
 import { MyTracks } from './components/MyTracks';
 import { MOCK_ARTISTS, MOCK_MESSAGES, ALL_EVENTS } from './constants';
-import { ViewState, Artist, UserRole } from './types';
-import { Calendar, MapPin, Ticket, MessageSquare, Clock, CheckCircle2, Search, Download } from 'lucide-react';
+import { ViewState, Artist, UserRole, UserStatus } from './types';
+import { Calendar, MapPin, Ticket, MessageSquare, Clock, CheckCircle2, Search, Download, AlertTriangle } from 'lucide-react';
 
-function AppContent({ userRole, onLogout, userName }: { userRole: UserRole, onLogout: () => void, userName?: string }) {
+function AppContent({ userRole, userStatus, onLogout, userName }: { userRole: UserRole, userStatus: UserStatus, onLogout: () => void, userName?: string }) {
   const [currentView, setCurrentView] = useState<ViewState>('discovery');
   const [selectedArtist, setSelectedArtist] = useState<Artist>(MOCK_ARTISTS[0]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -21,6 +21,7 @@ function AppContent({ userRole, onLogout, userName }: { userRole: UserRole, onLo
   useEffect(() => {
     if (userRole === 'admin') setCurrentView('admin_dashboard');
     else if (userRole === 'radio') setCurrentView('discovery');
+    else if (userRole === 'producer') setCurrentView('discovery');
     else setCurrentView('discovery'); // Artist default
   }, [userRole]);
 
@@ -56,6 +57,15 @@ function AppContent({ userRole, onLogout, userName }: { userRole: UserRole, onLo
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-full relative z-10 bg-gradient-to-br from-zinc-950 via-zinc-950 to-zinc-900/50">
+        
+        {/* PENDING STATUS BANNER */}
+        {userStatus === 'pending' && (
+            <div className="bg-yellow-600/20 border-b border-yellow-600/40 text-yellow-500 px-4 py-2 text-sm flex items-center justify-center gap-2">
+                <AlertTriangle size={16} />
+                <span className="font-bold">Perfil en Evaluación:</span> Tu cuenta tiene acceso limitado hasta que nuestros administradores validen tu material.
+            </div>
+        )}
+
         <Navbar toggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)} />
         
         <main className="flex-1 overflow-y-auto pb-24 scroll-smooth">
@@ -63,7 +73,7 @@ function AppContent({ userRole, onLogout, userName }: { userRole: UserRole, onLo
             {/* --- ADMIN VIEWS --- */}
             {currentView === 'admin_dashboard' && <AdminDashboard />}
 
-            {/* --- ARTIST VIEWS --- */}
+            {/* --- ARTIST/PRODUCER UPLOADS --- */}
             {currentView === 'my_tracks' && <MyTracks />}
 
             {/* --- RADIO VIEWS --- */}
@@ -74,6 +84,17 @@ function AppContent({ userRole, onLogout, userName }: { userRole: UserRole, onLo
                     <p>Aquí aparecerán las canciones que has descargado para tu emisora.</p>
                 </div>
             )}
+             
+             {/* --- PRODUCER SPECIFIC --- */}
+             {currentView === 'producer_portfolio' && (
+                 <div className="flex flex-col items-center justify-center h-[60vh] text-zinc-500 p-8 text-center animate-fade-in">
+                    <div className="bg-purple-500/20 p-6 rounded-full mb-4">
+                        <CheckCircle2 size={48} className="text-purple-500" />
+                    </div>
+                    <h2 className="text-xl font-bold text-white mb-2">Portfolio de Productor</h2>
+                    <p>Gestiona tus servicios de mezcla, mastering y beatmaking.</p>
+                 </div>
+             )}
 
             {/* --- SHARED VIEWS --- */}
             {currentView === 'discovery' && (
@@ -215,6 +236,7 @@ function AppContent({ userRole, onLogout, userName }: { userRole: UserRole, onLo
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<UserRole>('artist');
+  const [userStatus, setUserStatus] = useState<UserStatus>('active');
   const [userName, setUserName] = useState('Usuario');
 
   // Load from local storage on mount
@@ -224,19 +246,26 @@ export default function App() {
           const parsed = JSON.parse(storedUser);
           setUserName(parsed.name);
           setUserRole(parsed.role);
+          setUserStatus(parsed.status || 'active');
           setIsAuthenticated(true);
       }
   }, []);
 
   const handleLogin = (role: UserRole, name: string = 'Usuario') => {
-    setUserRole(role);
-    setUserName(name);
-    setIsAuthenticated(true);
-    
-    // If it's admin, we set a temporary session
-    if (role === 'admin') {
-        localStorage.setItem('emerhit_user', JSON.stringify({ name: 'Admin Corporativo', role: 'admin' }));
+    // Re-fetch form local storage to get the full object including status set by LandingPage
+    const storedUser = localStorage.getItem('emerhit_user');
+    if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        setUserStatus(parsed.status || 'active');
+        setUserRole(parsed.role);
+        setUserName(parsed.name);
+    } else {
+        // Fallback
+        setUserRole(role);
+        setUserName(name);
+        setUserStatus('active');
     }
+    setIsAuthenticated(true);
   };
 
   const handleLogout = () => {
@@ -251,7 +280,7 @@ export default function App() {
 
   return (
     <PlayerProvider>
-      <AppContent userRole={userRole} onLogout={handleLogout} userName={userName} />
+      <AppContent userRole={userRole} userStatus={userStatus} onLogout={handleLogout} userName={userName} />
     </PlayerProvider>
   );
 }
