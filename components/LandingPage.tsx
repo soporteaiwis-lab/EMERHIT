@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { LOGO_URL } from '../assets';
-import { Radio, Mic2, TrendingUp, CheckCircle2, Music, Play, X, User, Headphones, LogIn, Link as LinkIcon } from 'lucide-react';
+import { Radio, Mic2, X, User, Headphones, Link as LinkIcon, CheckCircle2, AlertTriangle, Facebook } from 'lucide-react';
 import { UserRole } from '../types';
+import { mockDB } from '../services/mockDatabase';
 
 interface LandingPageProps {
-  onEnterApp: (role: UserRole, userName?: string) => void;
+  onEnterApp: (role: UserRole, userName: string, status: string) => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
@@ -24,31 +25,58 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       e.preventDefault();
       if (!registerRole) return;
       
-      // Simulate API call, status PENDING
-      localStorage.setItem('emerhit_user', JSON.stringify({
-          name: formData.name,
+      // Create user in Mock DB
+      const newUser = {
           role: registerRole,
+          name: formData.name,
           email: formData.email,
-          status: 'pending' // Default status for new registrations
-      }));
+          status: 'pending', // Always pending initially
+          avatarUrl: 'https://placehold.co/400x400?text=' + formData.name.charAt(0),
+          location: { city: 'Registro Web', country: 'Latam', display: 'Latam (Web)' },
+          // Add role specific fields placeholders
+          bio: 'Perfil en proceso de creación.',
+          socials: {},
+          tracks: [],
+          events: [],
+          demoUrl: formData.demoUrl,
+          rating: 0,
+          votes: 0
+      };
+
+      mockDB.addUser(newUser);
       
       setShowSuccessMsg(true);
-      // Auto login after 2 seconds for demo purposes
+      
+      // Auto login after 2 seconds
       setTimeout(() => {
-          onEnterApp(registerRole, formData.name);
+          onEnterApp(registerRole, formData.name, 'pending');
           setShowRegisterModal(false);
-      }, 3000);
+      }, 2500);
   };
 
-  // Quick Login Helper
-  const quickLogin = (role: UserRole, name: string) => {
-      localStorage.setItem('emerhit_user', JSON.stringify({
-          name: name,
-          role: role,
-          email: `${name.toLowerCase().replace(' ', '')}@demo.com`,
-          status: 'active'
-      }));
-      onEnterApp(role, name);
+  // Quick Login Helper using Database IDs
+  const quickLogin = (type: 'artist' | 'radio' | 'producer' | 'admin' | 'vandik') => {
+      if (type === 'admin') {
+          // Admin is special, doesn't need DB entry for this demo
+          onEnterApp('admin', 'Administrador Global', 'active');
+          return;
+      }
+
+      let userId = '';
+      if (type === 'vandik') userId = 'demo_vandik';
+      if (type === 'artist') userId = 'a1'; // Luna Creciente
+      if (type === 'radio') userId = 'r_fmdos'; // FMDOS
+      if (type === 'producer') userId = 'p1'; // Nico Venegas
+
+      const user = mockDB.loginById(userId);
+      if (user) {
+          onEnterApp(user.role, user.name, user.status);
+      } else {
+          // Fallback if DB reset wasn't enough (safe guard)
+          if(type === 'radio') onEnterApp('radio', 'FMDOS', 'active');
+          else if(type === 'producer') onEnterApp('producer', 'Nico Venegas', 'active');
+          else alert('Usuario demo no encontrado. Intente recargar la página.');
+      }
   };
 
   return (
@@ -76,10 +104,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                       </div>
 
                       {showSuccessMsg ? (
-                          <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4 text-center animate-fade-in">
-                              <CheckCircle2 size={48} className="text-green-500 mx-auto mb-2" />
-                              <h3 className="text-white font-bold mb-1">¡Postulación Enviada!</h3>
-                              <p className="text-sm text-zinc-300">Tu perfil ha sido creado y está sujeto a evaluación. Ingresando en modo lectura...</p>
+                          <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-6 text-center animate-fade-in">
+                              <CheckCircle2 size={48} className="text-green-500 mx-auto mb-4" />
+                              <h3 className="text-xl text-white font-bold mb-2">¡Postulación Enviada!</h3>
+                              <p className="text-sm text-zinc-300 mb-4">
+                                  Tu perfil ha sido creado con estado <span className="text-yellow-500 font-bold">"En Espera"</span>.
+                              </p>
+                              <div className="bg-zinc-950 p-3 rounded border border-zinc-800 text-xs text-zinc-500">
+                                  Ingresando automáticamente al panel...
+                              </div>
                           </div>
                       ) : (
                           <form onSubmit={handleRegisterSubmit} className="space-y-4">
@@ -119,7 +152,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                                   />
                                   <p className="text-[10px] text-zinc-500 mt-1">Necesario para validar tu perfil en la plataforma.</p>
                               </div>
-                              <button type="submit" className="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg transition mt-4">
+                              <button type="submit" className="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg transition mt-4 shadow-lg shadow-green-900/20">
                                   Enviar Postulación
                               </button>
                           </form>
@@ -134,11 +167,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="w-8"></div> 
           <div className="flex gap-4">
-             <button onClick={() => quickLogin('admin', 'Admin Corporativo')} className="hidden md:block text-xs text-zinc-600 hover:text-zinc-400 mr-4 mt-2">
-                 Acceso Corporativo
+             <button onClick={() => quickLogin('admin')} className="hidden md:flex items-center gap-2 bg-red-600/10 hover:bg-red-600/20 border border-red-600/30 text-red-400 hover:text-red-300 px-4 py-2 rounded-full text-xs font-bold transition mr-4 mt-2">
+                 <User size={14} /> Acceso Corporativo
              </button>
-             {/* Quick Actions removed from header to focus on main buttons, or keep Login */}
-             <button onClick={() => setShowRegisterModal(true)} className="text-sm font-medium text-zinc-300 hover:text-white transition uppercase tracking-wide">Login</button>
           </div>
         </div>
       </nav>
@@ -177,45 +208,62 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
           </p>
 
           {/* MAIN ACTION BUTTONS */}
-          <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-12">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-16">
             <button 
                 onClick={() => handleOpenRegister('radio')}
                 className="w-full md:w-auto bg-green-600 hover:bg-green-500 text-white font-bold px-8 py-4 rounded-xl transition-all transform hover:scale-105 shadow-lg flex items-center justify-center gap-3"
             >
                 <Radio size={24} />
-                Soy Radio
+                Inscribir Radio
             </button>
             <button 
                 onClick={() => handleOpenRegister('artist')}
                 className="w-full md:w-auto bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700 font-bold px-8 py-4 rounded-xl transition-all transform hover:scale-105 flex items-center justify-center gap-3"
             >
                 <Mic2 size={24} />
-                Soy Artista
+                Inscribir Artista
             </button>
             <button 
                 onClick={() => handleOpenRegister('producer')}
                 className="w-full md:w-auto bg-zinc-900 hover:bg-zinc-800 text-white border border-zinc-800 font-bold px-8 py-4 rounded-xl transition-all transform hover:scale-105 flex items-center justify-center gap-3"
             >
                 <Headphones size={24} />
-                Soy Productor
+                Inscribir Productor
             </button>
           </div>
 
           {/* QUICK ACCESS (DEMO) */}
-          <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 max-w-2xl mx-auto">
-             <h3 className="text-xs font-bold text-zinc-500 uppercase mb-4 tracking-widest">Acceso Rápido (Modo Demo)</h3>
-             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                 <button onClick={() => quickLogin('radio', 'Radio Demo')} className="bg-zinc-800 hover:bg-zinc-700 text-xs py-2 rounded text-zinc-300 hover:text-white transition flex flex-col items-center gap-1">
-                     <Radio size={16} /> Radio
+          <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700 rounded-2xl p-8 max-w-3xl mx-auto shadow-2xl relative overflow-hidden">
+             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 via-emerald-400 to-green-500"></div>
+             <h3 className="text-sm font-bold text-zinc-400 uppercase mb-6 tracking-widest flex items-center justify-center gap-2">
+                 <User size={16} /> Usuarios de Prueba (Ingreso Directo)
+             </h3>
+             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                 <button onClick={() => quickLogin('vandik')} className="bg-zinc-800 hover:bg-green-600 group text-sm py-4 rounded-xl text-zinc-200 hover:text-white transition flex flex-col items-center gap-2 border border-zinc-700 hover:border-green-500 relative overflow-hidden">
+                     <div className="absolute top-2 right-2">
+                        <AlertTriangle size={12} className="text-yellow-500" />
+                     </div>
+                     <Mic2 size={24} className="text-zinc-500 group-hover:text-white" /> 
+                     <span className="font-bold">Vandik</span>
+                     <span className="text-[10px] text-zinc-500 group-hover:text-zinc-200">En Espera</span>
                  </button>
-                 <button onClick={() => quickLogin('artist', 'Artista Demo')} className="bg-zinc-800 hover:bg-zinc-700 text-xs py-2 rounded text-zinc-300 hover:text-white transition flex flex-col items-center gap-1">
-                     <Mic2 size={16} /> Artista
+
+                 <button onClick={() => quickLogin('radio')} className="bg-zinc-800 hover:bg-blue-600 group text-sm py-4 rounded-xl text-zinc-200 hover:text-white transition flex flex-col items-center gap-2 border border-zinc-700 hover:border-blue-500">
+                     <Radio size={24} className="text-zinc-500 group-hover:text-white" /> 
+                     <span className="font-bold">FMDOS</span>
+                     <span className="text-[10px] text-zinc-500 group-hover:text-zinc-200">Aceptado</span>
                  </button>
-                 <button onClick={() => quickLogin('producer', 'Productor Demo')} className="bg-zinc-800 hover:bg-zinc-700 text-xs py-2 rounded text-zinc-300 hover:text-white transition flex flex-col items-center gap-1">
-                     <Headphones size={16} /> Productor
+
+                 <button onClick={() => quickLogin('producer')} className="bg-zinc-800 hover:bg-purple-600 group text-sm py-4 rounded-xl text-zinc-200 hover:text-white transition flex flex-col items-center gap-2 border border-zinc-700 hover:border-purple-500">
+                     <Headphones size={24} className="text-zinc-500 group-hover:text-white" /> 
+                     <span className="font-bold">Nico Venegas</span>
+                     <span className="text-[10px] text-zinc-500 group-hover:text-zinc-200">Aceptado</span>
                  </button>
-                 <button onClick={() => quickLogin('admin', 'Admin EMERHIT')} className="bg-zinc-800 hover:bg-zinc-700 text-xs py-2 rounded text-zinc-300 hover:text-white transition flex flex-col items-center gap-1 border border-zinc-600">
-                     <User size={16} /> Admin
+
+                 <button onClick={() => quickLogin('admin')} className="bg-zinc-950 hover:bg-red-900 group text-sm py-4 rounded-xl text-zinc-200 hover:text-white transition flex flex-col items-center gap-2 border border-zinc-700 hover:border-red-500">
+                     <User size={24} className="text-red-500" /> 
+                     <span className="font-bold">Admin</span>
+                     <span className="text-[10px] text-zinc-500 group-hover:text-zinc-200">Control Total</span>
                  </button>
              </div>
           </div>
@@ -229,6 +277,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             <div>
                 <img src={LOGO_URL} alt="EMERHIT" className="h-6 object-contain opacity-50 mb-4 mx-auto md:mx-0" />
                 <p className="text-zinc-500 text-sm">© 2024 EMERHIT.</p>
+                
+                {/* Facebook EMERHIT Link */}
+                <a 
+                    href="https://web.facebook.com/emerhit" 
+                    target="_blank" 
+                    rel="noreferrer" 
+                    className="inline-flex items-center gap-2 text-zinc-500 hover:text-blue-500 mt-2 text-sm transition"
+                >
+                    <Facebook size={16} /> Facebook Oficial
+                </a>
             </div>
             <div className="text-zinc-600 text-sm">AIWIS Development</div>
         </div>

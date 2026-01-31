@@ -10,7 +10,8 @@ import { AdminDashboard } from './components/AdminDashboard';
 import { MyTracks } from './components/MyTracks';
 import { MOCK_ARTISTS, MOCK_MESSAGES, ALL_EVENTS } from './constants';
 import { ViewState, Artist, UserRole, UserStatus } from './types';
-import { Calendar, MapPin, Ticket, MessageSquare, Clock, CheckCircle2, Search, Download, AlertTriangle } from 'lucide-react';
+import { Calendar, MapPin, Ticket, MessageSquare, Clock, CheckCircle2, Search, Download, AlertTriangle, Lock } from 'lucide-react';
+import { mockDB } from './services/mockDatabase';
 
 function AppContent({ userRole, userStatus, onLogout, userName }: { userRole: UserRole, userStatus: UserStatus, onLogout: () => void, userName?: string }) {
   const [currentView, setCurrentView] = useState<ViewState>('discovery');
@@ -34,6 +35,25 @@ function AppContent({ userRole, userStatus, onLogout, userName }: { userRole: Us
     setCurrentView(view);
     setIsMobileMenuOpen(false);
   };
+
+  // Rejected View
+  if (userStatus === 'rejected') {
+      return (
+          <div className="h-screen bg-zinc-950 flex flex-col items-center justify-center text-center p-8">
+              <div className="bg-red-500/10 p-6 rounded-full mb-6">
+                  <Lock size={48} className="text-red-500" />
+              </div>
+              <h1 className="text-3xl font-bold text-white mb-4">Acceso Denegado</h1>
+              <p className="text-zinc-400 max-w-md mb-8">
+                  Lo sentimos, tu perfil no cumple con los requisitos actuales de la plataforma EMERHIT. 
+                  Te invitamos a intentarlo nuevamente en el futuro.
+              </p>
+              <button onClick={onLogout} className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-3 rounded-lg font-bold transition">
+                  Volver al Inicio
+              </button>
+          </div>
+      );
+  }
 
   return (
     <div className="h-screen bg-zinc-950 text-zinc-200 font-sans selection:bg-green-500/30 overflow-hidden flex flex-col md:flex-row animate-fade-in relative">
@@ -60,9 +80,9 @@ function AppContent({ userRole, userStatus, onLogout, userName }: { userRole: Us
         
         {/* PENDING STATUS BANNER */}
         {userStatus === 'pending' && (
-            <div className="bg-yellow-600/20 border-b border-yellow-600/40 text-yellow-500 px-4 py-2 text-sm flex items-center justify-center gap-2">
+            <div className="bg-yellow-600/20 border-b border-yellow-600/40 text-yellow-500 px-4 py-2 text-sm flex items-center justify-center gap-2 animate-pulse">
                 <AlertTriangle size={16} />
-                <span className="font-bold">Perfil en Evaluación:</span> Tu cuenta tiene acceso limitado hasta que nuestros administradores validen tu material.
+                <span className="font-bold">PERFIL EN ESPERA:</span> Tu cuenta está bajo evaluación. Algunas funciones están limitadas hasta ser aceptado.
             </div>
         )}
 
@@ -239,33 +259,44 @@ export default function App() {
   const [userStatus, setUserStatus] = useState<UserStatus>('active');
   const [userName, setUserName] = useState('Usuario');
 
-  // Load from local storage on mount
+  // Initialize DB and Load from local storage on mount
   useEffect(() => {
+      mockDB.initialize();
+
       const storedUser = localStorage.getItem('emerhit_user');
       if (storedUser) {
           const parsed = JSON.parse(storedUser);
-          setUserName(parsed.name);
-          setUserRole(parsed.role);
-          setUserStatus(parsed.status || 'active');
-          setIsAuthenticated(true);
+          
+          // Refresh user data from DB to get latest status
+          const latestUser = mockDB.login(parsed.email); 
+          if (latestUser) {
+             setUserName(latestUser.name);
+             setUserRole(latestUser.role);
+             setUserStatus(latestUser.status);
+             setIsAuthenticated(true);
+          } else {
+             // Fallback if local storage user not in DB (edge case)
+             setUserName(parsed.name);
+             setUserRole(parsed.role);
+             setUserStatus(parsed.status);
+             setIsAuthenticated(true);
+          }
       }
   }, []);
 
-  const handleLogin = (role: UserRole, name: string = 'Usuario') => {
-    // Re-fetch form local storage to get the full object including status set by LandingPage
-    const storedUser = localStorage.getItem('emerhit_user');
-    if (storedUser) {
-        const parsed = JSON.parse(storedUser);
-        setUserStatus(parsed.status || 'active');
-        setUserRole(parsed.role);
-        setUserName(parsed.name);
-    } else {
-        // Fallback
-        setUserRole(role);
-        setUserName(name);
-        setUserStatus('active');
-    }
+  const handleLogin = (role: UserRole, name: string = 'Usuario', status: string = 'active') => {
+    setUserRole(role);
+    setUserName(name);
+    setUserStatus(status as UserStatus);
     setIsAuthenticated(true);
+    
+    // Also save simple session to localstorage (separate from DB)
+    localStorage.setItem('emerhit_user', JSON.stringify({
+        name: name,
+        role: role,
+        status: status,
+        email: 'session@current.com' // Placeholder for session refresh
+    }));
   };
 
   const handleLogout = () => {

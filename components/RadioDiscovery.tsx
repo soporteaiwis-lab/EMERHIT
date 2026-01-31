@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Artist } from '../types';
 import { usePlayer } from './PlayerContext';
-import { Play, MapPin, Search, Filter, Music2, Globe2 } from 'lucide-react';
+import { Play, MapPin, Search, Filter, Music2, Globe2, Star } from 'lucide-react';
 
 interface RadioDiscoveryProps {
   artists: Artist[];
@@ -132,8 +132,12 @@ export const RadioDiscovery: React.FC<RadioDiscoveryProps> = ({ artists, onSelec
                          <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
                              {artist.genre}
                          </span>
-                         {artist.paymentStatus === 'premium' && (
-                             <span className="text-xs font-bold text-black bg-green-500 px-2 py-0.5 rounded-full">PRO</span>
+                         {/* Stars on Card */}
+                         {artist.rating > 0 && (
+                            <div className="flex items-center gap-1 text-yellow-400">
+                                <Star size={12} fill="currentColor" />
+                                <span className="text-xs font-bold">{artist.rating}</span>
+                            </div>
                          )}
                     </div>
                     

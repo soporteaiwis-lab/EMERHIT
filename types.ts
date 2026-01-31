@@ -6,6 +6,8 @@ export interface SocialLinks {
   website?: string;
   spotify?: string;
   twitter?: string;
+  facebook?: string; // Added Facebook
+  youtube?: string; // Added YouTube
 }
 
 export type UserRole = 'artist' | 'radio' | 'admin' | 'producer';
@@ -14,10 +16,12 @@ export type UserStatus = 'active' | 'pending' | 'rejected';
 export interface UserBase {
   id: string;
   role: UserRole;
-  status: UserStatus; // New field for evaluation process
+  status: UserStatus;
   email: string;
   name: string;
   avatarUrl: string;
+  rating: number; // 0 to 5
+  votes: number; // Total number of votes
   location: {
     city: string;
     country: string;
@@ -34,7 +38,7 @@ export interface Artist extends UserBase {
   socials: SocialLinks;
   tracks: Track[];
   events: Event[];
-  demoUrl?: string; // For application
+  demoUrl?: string;
 }
 
 export interface RadioStation extends UserBase {
@@ -42,12 +46,13 @@ export interface RadioStation extends UserBase {
   frequency: string;
   licenseType: 'community' | 'commercial' | 'online';
   genreFocus: string[];
+  socials?: SocialLinks; // Added socials to Radio
 }
 
 export interface Producer extends UserBase {
   role: 'producer';
   bio: string;
-  specialties: string[]; // e.g. 'Mixing', 'Mastering', 'Beatmaking'
+  specialties: string[];
   portfolioUrl?: string;
   socials: SocialLinks;
 }
@@ -67,6 +72,9 @@ export interface Track {
   coverUrl: string;
   mp3Url: string;
   genre: string;
+  plays: number; // Added Play Count
+  likes: number; // Added Like Count
+  externalUrl?: string; // YouTube/Spotify link
 }
 
 export interface Event {

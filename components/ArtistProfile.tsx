@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Artist } from '../types';
 import { usePlayer } from './PlayerContext';
-import { Play, Calendar, Share2, Instagram, Globe, Mail, Sparkles, Radio, Ticket, Music2, MapPin, Download, MessageSquare, ArrowLeft } from 'lucide-react';
+import { Play, Calendar, Share2, Instagram, Globe, Mail, Sparkles, Radio, Ticket, Music2, MapPin, Download, MessageSquare, ArrowLeft, Star, Heart, Youtube, Facebook, ThumbsUp } from 'lucide-react';
 import { generateArtistBio } from '../services/geminiService';
 import { ContactModal } from './ContactModal';
 
@@ -25,8 +25,23 @@ export const ArtistProfile: React.FC<ArtistProfileProps> = ({ artist }) => {
 
   const handleDownload = (e: React.MouseEvent, trackTitle: string) => {
     e.stopPropagation();
-    // Simulate download
     alert(`Iniciando descarga de alta calidad para: ${trackTitle}\n(Validando licencia de radio...)`);
+  };
+
+  // Helper for stars
+  const renderStars = (rating: number) => {
+    return (
+        <div className="flex items-center gap-1">
+            {[1, 2, 3, 4, 5].map((star) => (
+                <Star 
+                    key={star} 
+                    size={16} 
+                    className={`${star <= Math.round(rating) ? 'text-yellow-400 fill-yellow-400' : 'text-zinc-600'}`} 
+                />
+            ))}
+            <span className="text-zinc-400 text-xs ml-1">({artist.votes} votos)</span>
+        </div>
+    );
   };
 
   return (
@@ -46,7 +61,7 @@ export const ArtistProfile: React.FC<ArtistProfileProps> = ({ artist }) => {
           <img 
             src={artist.avatarUrl} 
             alt={artist.name} 
-            className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-zinc-950 shadow-2xl"
+            className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-zinc-950 shadow-2xl bg-zinc-800"
           />
           <div className="flex-1 mb-2">
             <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tight flex items-center gap-3">
@@ -55,10 +70,12 @@ export const ArtistProfile: React.FC<ArtistProfileProps> = ({ artist }) => {
                 <span className="bg-green-500 text-black text-xs px-2 py-0.5 rounded-full font-bold shadow-[0_0_10px_rgba(34,197,94,0.4)] align-middle text-base">PRO</span>
               )}
             </h1>
-            <p className="text-zinc-300 text-sm md:text-lg flex items-center gap-3 mt-2">
-              <span className="bg-zinc-800/80 backdrop-blur text-zinc-200 border border-zinc-700 px-3 py-0.5 rounded text-xs font-bold uppercase tracking-wider">{artist.genre}</span>
-              <span className="flex items-center gap-1 text-zinc-300"><MapPin size={16} className="text-green-500" /> {artist.location.display}</span>
-            </p>
+            
+            <div className="flex flex-col md:flex-row md:items-center gap-3 mt-2">
+                <span className="bg-zinc-800/80 backdrop-blur text-zinc-200 border border-zinc-700 px-3 py-0.5 rounded text-xs font-bold uppercase tracking-wider w-fit">{artist.genre}</span>
+                {renderStars(artist.rating)}
+                <span className="flex items-center gap-1 text-zinc-300 text-sm"><MapPin size={16} className="text-green-500" /> {artist.location.display}</span>
+            </div>
           </div>
           
           {/* Action Buttons */}
@@ -129,11 +146,33 @@ export const ArtistProfile: React.FC<ArtistProfileProps> = ({ artist }) => {
                       <h3 className={`font-bold text-base ${currentTrack?.id === track.id ? 'text-green-400' : 'text-zinc-200 group-hover:text-white'}`}>
                         {track.title}
                       </h3>
-                      <p className="text-xs text-zinc-500">{track.artistName}</p>
+                      <div className="flex items-center gap-2 text-xs text-zinc-500">
+                          <span>{track.artistName}</span>
+                          <span>•</span>
+                          <span className="flex items-center gap-1"><Play size={10} /> {track.plays?.toLocaleString() || 0}</span>
+                      </div>
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-6">
+                     {/* External Link */}
+                     {track.externalUrl && (
+                         <a 
+                            href={track.externalUrl} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-zinc-500 hover:text-red-500 transition hidden sm:block"
+                            title="Ver en YouTube/Spotify"
+                         >
+                            <Youtube size={18} />
+                         </a>
+                     )}
+                     
+                     <div className="flex items-center gap-1 text-zinc-500 text-sm hidden sm:flex">
+                        <ThumbsUp size={14} /> {track.likes?.toLocaleString() || 0}
+                     </div>
+
                      <span className="text-sm font-mono text-zinc-500 hidden sm:block">{track.duration}</span>
                      
                      <div className="flex items-center gap-2">
@@ -242,48 +281,50 @@ export const ArtistProfile: React.FC<ArtistProfileProps> = ({ artist }) => {
                 <h3 className="text-lg font-bold text-white mb-4">Conecta en Redes</h3>
                 <div className="flex flex-wrap gap-3">
                   {artist.socials.instagram && (
-                    <a href="#" className="flex items-center gap-2 bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 px-4 py-3 rounded-lg text-zinc-300 transition flex-1 justify-center min-w-[140px]">
+                    <a href={`https://instagram.com/${artist.socials.instagram.replace('@','')}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 px-4 py-3 rounded-lg text-zinc-300 transition flex-1 justify-center min-w-[140px]">
                       <Instagram size={20} /> Instagram
                     </a>
                   )}
                   {artist.socials.website && (
-                    <a href="#" className="flex items-center gap-2 bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 px-4 py-3 rounded-lg text-zinc-300 transition flex-1 justify-center min-w-[140px]">
+                    <a href={artist.socials.website} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 px-4 py-3 rounded-lg text-zinc-300 transition flex-1 justify-center min-w-[140px]">
                       <Globe size={20} /> Website
                     </a>
                   )}
-                  {artist.socials.tiktok && (
-                    <a href="#" className="flex items-center gap-2 bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 px-4 py-3 rounded-lg text-zinc-300 transition flex-1 justify-center min-w-[140px]">
-                      <Music2 size={20} /> TikTok
+                   {artist.socials.facebook && (
+                    <a href={artist.socials.facebook} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 px-4 py-3 rounded-lg text-zinc-300 transition flex-1 justify-center min-w-[140px]">
+                      <Facebook size={20} /> Facebook
                     </a>
                   )}
-                  <a href="#" className="flex items-center gap-2 bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 px-4 py-3 rounded-lg text-zinc-300 transition flex-1 justify-center min-w-[140px]">
-                      <Mail size={20} /> {artist.email}
-                  </a>
+                  {artist.socials.youtube && (
+                    <a href={artist.socials.youtube} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 px-4 py-3 rounded-lg text-zinc-300 transition flex-1 justify-center min-w-[140px]">
+                      <Youtube size={20} /> YouTube
+                    </a>
+                  )}
                 </div>
               </div>
             </div>
 
             <div className="md:col-span-1">
               <div className="bg-zinc-900 p-5 rounded-xl border border-zinc-800 sticky top-36">
-                <h3 className="text-white font-bold mb-4">Métricas (Privado)</h3>
+                <h3 className="text-white font-bold mb-4">Estadísticas</h3>
                 <ul className="space-y-4">
                   <li className="flex justify-between text-sm items-center">
-                    <span className="text-zinc-500">Oyentes Mensuales</span>
-                    <span className="text-white font-bold text-lg">1,240</span>
+                    <span className="text-zinc-500">Valoración</span>
+                    <span className="text-yellow-400 font-bold flex items-center gap-1"><Star size={14} fill="currentColor" /> {artist.rating}</span>
                   </li>
                   <div className="h-px bg-zinc-800 w-full"></div>
                   <li className="flex justify-between text-sm items-center">
-                    <span className="text-zinc-500">Seguidores</span>
-                    <span className="text-white font-bold text-lg">856</span>
+                    <span className="text-zinc-500">Reproducciones</span>
+                    <span className="text-white font-bold text-lg">{artist.tracks.reduce((acc, t) => acc + (t.plays || 0), 0).toLocaleString()}</span>
                   </li>
                   <div className="h-px bg-zinc-800 w-full"></div>
                   <li className="flex justify-between text-sm items-center">
-                    <span className="text-zinc-500">Radios contactadas</span>
-                    <span className="text-white font-bold text-lg">12</span>
+                    <span className="text-zinc-500">Votos Totales</span>
+                    <span className="text-white font-bold text-lg">{artist.votes}</span>
                   </li>
                 </ul>
                 <div className="mt-6 p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-xs text-green-400 text-center">
-                    Nivel de Engagement: Alto
+                    Artista en Ascenso
                 </div>
               </div>
             </div>
