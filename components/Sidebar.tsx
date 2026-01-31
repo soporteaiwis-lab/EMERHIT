@@ -49,19 +49,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, userRole
   const menuItems = getMenu();
 
   return (
-    <aside className={`bg-zinc-950 border-r border-zinc-800 w-64 flex flex-col h-full ${className}`}>
+    <aside className={`bg-zinc-950/90 backdrop-blur-md border-r border-zinc-800 w-64 flex flex-col h-full ${className}`}>
       {/* Logo Area */}
-      <div className="h-20 flex items-center px-6 border-b border-zinc-900 bg-zinc-950">
-        <img src={LOGO_URL} alt="EMERHIT" className="h-8 object-contain" />
-        {userRole === 'admin' && <span className="ml-2 text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded font-bold">ADMIN</span>}
-        {userRole === 'radio' && <span className="ml-2 text-[10px] bg-blue-500 text-white px-1.5 py-0.5 rounded font-bold">RADIO</span>}
-        {userRole === 'producer' && <span className="ml-2 text-[10px] bg-purple-500 text-white px-1.5 py-0.5 rounded font-bold">PROD</span>}
+      <div className="h-24 flex items-center px-6 border-b border-zinc-900 bg-zinc-950/50">
+        <div className="w-10 h-10 rounded-full overflow-hidden shadow-[0_0_15px_rgba(34,197,94,0.3)] border-2 border-zinc-800">
+             <img src={LOGO_URL} alt="EMERHIT" className="w-full h-full object-cover scale-110" />
+        </div>
+        <span className="ml-3 font-bold text-xl tracking-tight text-white">EMERHIT</span>
+        {userRole === 'admin' && <span className="ml-2 text-[8px] bg-red-500 text-white px-1.5 py-0.5 rounded font-bold self-start mt-1">ADMIN</span>}
+        {userRole === 'radio' && <span className="ml-2 text-[8px] bg-blue-500 text-white px-1.5 py-0.5 rounded font-bold self-start mt-1">RADIO</span>}
+        {userRole === 'producer' && <span className="ml-2 text-[8px] bg-purple-500 text-white px-1.5 py-0.5 rounded font-bold self-start mt-1">PROD</span>}
       </div>
 
       {/* Navigation */}
       <div className="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
         <div className="px-3 mb-4">
-            <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Menu Principal</h3>
+            <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Menu Principal</h3>
         </div>
         
         {menuItems.map((item) => {
@@ -71,10 +74,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, userRole
             <button
               key={item.id}
               onClick={() => setView(item.id as ViewState)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group
+              className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all duration-200 group
                 ${isActive 
-                  ? 'bg-zinc-900 text-green-400 border-l-2 border-green-500' 
-                  : 'text-zinc-400 hover:text-white hover:bg-zinc-900/50'
+                  ? 'bg-zinc-800/80 text-green-400 shadow-lg' 
+                  : 'text-zinc-400 hover:text-white hover:bg-zinc-800/40'
                 }`}
             >
               <Icon size={20} className={isActive ? 'text-green-400' : 'text-zinc-500 group-hover:text-white'} />
@@ -86,12 +89,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, userRole
         {(userRole === 'artist' || userRole === 'producer') && (
             <>
                 <div className="px-3 mt-8 mb-4">
-                    <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Tu Material</h3>
+                    <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Tu Material</h3>
                 </div>
                 <button 
                     onClick={() => setView('my_tracks')}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition group
-                    ${currentView === 'my_tracks' ? 'bg-zinc-900 text-white' : 'text-zinc-400 hover:text-white hover:bg-zinc-900/50'}`}
+                    className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition group
+                    ${currentView === 'my_tracks' ? 'bg-zinc-800/80 text-white shadow-lg' : 'text-zinc-400 hover:text-white hover:bg-zinc-800/40'}`}
                 >
                     <Disc size={20} className={currentView === 'my_tracks' ? 'text-green-500' : 'text-zinc-500'} />
                     {userRole === 'producer' ? 'Mis Beats/Demos' : 'Mis Tracks'}
@@ -102,9 +105,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, userRole
         {userRole === 'admin' && (
             <>
                  <div className="px-3 mt-8 mb-4">
-                    <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Configuración</h3>
+                    <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Configuración</h3>
                 </div>
-                <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-white hover:bg-zinc-900/50 transition">
+                <button className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold text-zinc-400 hover:text-white hover:bg-zinc-800/40 transition">
                     <Settings size={20} /> Ajustes Plataforma
                 </button>
             </>
@@ -112,7 +115,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, userRole
       </div>
 
       {/* Bottom Area */}
-      <div className="p-4 border-t border-zinc-900">
+      <div className="p-4 border-t border-zinc-900 bg-zinc-950/30">
         <button 
             onClick={onLogout}
             className="w-full flex items-center gap-2 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 px-3 py-2 rounded-lg text-sm font-medium transition"

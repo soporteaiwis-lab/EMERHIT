@@ -24,15 +24,17 @@ export const Navbar: React.FC<HeaderProps> = ({ toggleMobileMenu, onLogout, user
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800 h-16">
+    <header className="sticky top-0 z-30 bg-zinc-950/70 backdrop-blur-md border-b border-zinc-800 h-16 transition-all">
       <div className="flex items-center justify-between h-full px-4 md:px-8">
         
         {/* Mobile: Menu & Logo */}
         <div className="flex items-center gap-4 md:hidden">
-          <button onClick={toggleMobileMenu} className="text-zinc-400 hover:text-white">
+          <button onClick={toggleMobileMenu} className="text-zinc-400 hover:text-white p-2">
             <Menu size={24} />
           </button>
-          <img src={LOGO_URL} alt="EMERHIT" className="h-6 object-contain" />
+          <div className="w-8 h-8 rounded-full overflow-hidden border border-zinc-700">
+             <img src={LOGO_URL} alt="EMERHIT" className="w-full h-full object-cover scale-110" />
+          </div>
         </div>
 
         {/* Desktop Search */}
@@ -42,16 +44,16 @@ export const Navbar: React.FC<HeaderProps> = ({ toggleMobileMenu, onLogout, user
             <input 
               type="text" 
               placeholder="Buscar artistas, radios o eventos..." 
-              className="w-full bg-zinc-900 border border-zinc-800 text-zinc-200 text-sm rounded-full pl-10 pr-4 py-2 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all placeholder:text-zinc-600"
+              className="w-full bg-zinc-900/80 border border-zinc-800 text-zinc-200 text-sm rounded-full pl-10 pr-4 py-2.5 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all placeholder:text-zinc-600"
             />
           </div>
         </div>
 
         {/* Right Actions */}
         <div className="flex items-center gap-4">
-          <button className="text-zinc-400 hover:text-white relative">
+          <button className="text-zinc-400 hover:text-white relative p-2 rounded-full hover:bg-zinc-800 transition">
             <Bell size={20} />
-            <span className="absolute top-0 right-0 w-2 h-2 bg-green-500 rounded-full border border-zinc-950"></span>
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-green-500 rounded-full border border-zinc-950"></span>
           </button>
           
           <div className="h-8 w-px bg-zinc-800 mx-1 hidden md:block"></div>
@@ -62,7 +64,7 @@ export const Navbar: React.FC<HeaderProps> = ({ toggleMobileMenu, onLogout, user
                 onClick={() => setShowDropdown(!showDropdown)}
                 className="flex items-center gap-3 hover:bg-zinc-900 rounded-full py-1 pr-3 pl-1 transition border border-transparent hover:border-zinc-800"
             >
-               <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-300 border border-zinc-700 overflow-hidden">
+               <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-300 border border-zinc-700 overflow-hidden shadow-sm">
                   <User size={16} />
                </div>
                <div className="hidden md:flex flex-col items-start text-left">

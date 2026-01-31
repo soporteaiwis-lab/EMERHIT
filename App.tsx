@@ -39,8 +39,11 @@ function AppContent({ userRole, userStatus, onLogout, userName }: { userRole: Us
   // Rejected View
   if (userStatus === 'rejected') {
       return (
-          <div className="h-screen bg-zinc-950 flex flex-col items-center justify-center text-center p-8">
-              <div className="bg-red-500/10 p-6 rounded-full mb-6">
+          <div className="h-screen bg-zinc-950 flex flex-col items-center justify-center text-center p-8 relative overflow-hidden">
+              <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03]"></div>
+              <div className="orb orb-3" style={{ opacity: 0.2 }}></div>
+
+              <div className="bg-red-500/10 p-6 rounded-full mb-6 backdrop-blur-sm border border-red-500/20">
                   <Lock size={48} className="text-red-500" />
               </div>
               <h1 className="text-3xl font-bold text-white mb-4">Acceso Denegado</h1>
@@ -48,7 +51,7 @@ function AppContent({ userRole, userStatus, onLogout, userName }: { userRole: Us
                   Lo sentimos, tu perfil no cumple con los requisitos actuales de la plataforma EMERHIT. 
                   Te invitamos a intentarlo nuevamente en el futuro.
               </p>
-              <button onClick={onLogout} className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-3 rounded-lg font-bold transition">
+              <button onClick={onLogout} className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-3 rounded-lg font-bold transition z-10">
                   Volver al Inicio
               </button>
           </div>
@@ -56,31 +59,38 @@ function AppContent({ userRole, userStatus, onLogout, userName }: { userRole: Us
   }
 
   return (
-    <div className="h-screen bg-zinc-950 text-zinc-200 font-sans selection:bg-green-500/30 overflow-hidden flex flex-col md:flex-row animate-fade-in relative">
+    <div className="h-screen font-sans selection:bg-green-500/30 overflow-hidden flex flex-col md:flex-row animate-fade-in relative text-zinc-200">
       
-      {/* Background Texture for App */}
-      <div className="absolute inset-0 pointer-events-none z-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03]"></div>
+      {/* GLOBAL BACKGROUND (Aurora Effect) */}
+      <div className="animated-bg">
+          <div className="orb orb-1"></div>
+          <div className="orb orb-2"></div>
+          <div className="orb orb-3"></div>
+      </div>
+      
+      {/* Noise Texture Overlay */}
+      <div className="absolute inset-0 pointer-events-none z-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05]"></div>
 
       {/* Sidebar for Desktop */}
-      <div className="hidden md:block h-full z-10">
+      <div className="hidden md:block h-full z-20 shadow-2xl">
         <Sidebar currentView={currentView} setView={handleSetView} userRole={userRole} onLogout={onLogout} />
       </div>
 
       {/* Mobile Sidebar Overlay */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 md:hidden bg-black/50 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}>
-            <div className="w-64 h-full bg-zinc-950 shadow-2xl animate-slide-in-left" onClick={e => e.stopPropagation()}>
+            <div className="w-72 h-full bg-zinc-950 shadow-2xl animate-slide-in-left border-r border-zinc-800" onClick={e => e.stopPropagation()}>
                 <Sidebar currentView={currentView} setView={handleSetView} userRole={userRole} onLogout={onLogout} />
             </div>
         </div>
       )}
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-full relative z-10 bg-gradient-to-br from-zinc-950 via-zinc-950 to-zinc-900/50">
+      <div className="flex-1 flex flex-col h-full relative z-10 bg-transparent">
         
         {/* PENDING STATUS BANNER */}
         {userStatus === 'pending' && (
-            <div className="bg-yellow-600/20 border-b border-yellow-600/40 text-yellow-500 px-4 py-2 text-sm flex items-center justify-center gap-2 animate-pulse">
+            <div className="bg-yellow-600/20 border-b border-yellow-600/40 text-yellow-500 px-4 py-2 text-sm flex items-center justify-center gap-2 backdrop-blur-md">
                 <AlertTriangle size={16} />
                 <span className="font-bold">PERFIL EN ESPERA:</span> Tu cuenta está bajo evaluación. Algunas funciones están limitadas hasta ser aceptado.
             </div>
@@ -104,7 +114,7 @@ function AppContent({ userRole, userStatus, onLogout, userName }: { userRole: Us
             {/* --- RADIO VIEWS --- */}
             {currentView === 'radio_downloads' && (
                 <div className="flex flex-col items-center justify-center h-[60vh] text-zinc-500 p-8 text-center animate-fade-in">
-                    <Download size={64} className="mb-4 text-green-500" />
+                    <Download size={64} className="mb-4 text-green-500 opacity-50" />
                     <h2 className="text-xl font-bold text-white mb-2">Historial de Descargas</h2>
                     <p>Aquí aparecerán las canciones que has descargado para tu emisora.</p>
                 </div>
@@ -132,22 +142,22 @@ function AppContent({ userRole, userStatus, onLogout, userName }: { userRole: Us
 
             {currentView === 'events' && (
                <div className="max-w-5xl mx-auto px-4 md:px-8 py-8 animate-fade-in">
-                  <div className="flex justify-between items-end mb-8">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
                       <div>
                           <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
                               <Calendar className="text-green-500" /> Agenda de Eventos
                           </h1>
                           <p className="text-zinc-400">Próximos conciertos y festivales en la red EMERHIT.</p>
                       </div>
-                      <button className="bg-zinc-800 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-zinc-700 transition">
+                      <button className="bg-zinc-800 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-zinc-700 transition w-full md:w-auto">
                           Filtrar por Ciudad
                       </button>
                   </div>
 
                   <div className="grid gap-6">
                       {ALL_EVENTS.map((event) => (
-                          <div key={event.id} className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 md:p-6 flex flex-col md:flex-row gap-6 hover:border-green-500/30 transition group">
-                              <div className="w-full md:w-48 h-32 md:h-32 flex-shrink-0 rounded-lg overflow-hidden relative">
+                          <div key={event.id} className="bg-zinc-900/50 backdrop-blur border border-zinc-800 rounded-xl p-4 md:p-6 flex flex-col md:flex-row gap-6 hover:border-green-500/30 transition group">
+                              <div className="w-full md:w-48 h-48 md:h-32 flex-shrink-0 rounded-lg overflow-hidden relative">
                                   <img src={event.flyerUrl || "https://placehold.co/400x300"} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
                                   <div className="absolute top-2 right-2 bg-zinc-950/80 backdrop-blur text-white text-xs font-bold px-2 py-1 rounded">
                                       {new Date(event.date).toLocaleDateString()}
@@ -161,8 +171,8 @@ function AppContent({ userRole, userStatus, onLogout, userName }: { userRole: Us
                                   </div>
                                   <p className="text-zinc-500 text-sm mb-4 max-w-2xl">{event.description}</p>
                                   <div className="flex gap-3">
-                                      <button className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2">
-                                          <Ticket size={16} /> Comprar Tickets
+                                      <button className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 shadow-lg shadow-green-900/20">
+                                          <Ticket size={16} /> Tickets
                                       </button>
                                       <button className="bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
                                           Ver Detalles
@@ -177,7 +187,7 @@ function AppContent({ userRole, userStatus, onLogout, userName }: { userRole: Us
 
             {currentView === 'messages' && (
                <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 animate-fade-in h-[calc(100vh-140px)] flex flex-col">
-                  <div className="mb-6 flex justify-between items-center">
+                  <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                       <div>
                         <h1 className="text-3xl font-bold text-white mb-1 flex items-center gap-3">
                             <MessageSquare className="text-green-500" /> Mensajería {userRole === 'admin' && "(Soporte)"}
@@ -186,13 +196,13 @@ function AppContent({ userRole, userStatus, onLogout, userName }: { userRole: Us
                             {userRole === 'radio' ? 'Contacta artistas o al soporte técnico.' : 'Gestiona tus comunicaciones.'}
                         </p>
                       </div>
-                      <div className="relative">
+                      <div className="relative w-full md:w-auto">
                           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
-                          <input type="text" placeholder="Buscar mensajes..." className="bg-zinc-900 border border-zinc-800 text-sm rounded-full pl-9 pr-4 py-2 focus:outline-none focus:border-green-500 w-64" />
+                          <input type="text" placeholder="Buscar mensajes..." className="bg-zinc-900 border border-zinc-800 text-sm rounded-full pl-9 pr-4 py-2 focus:outline-none focus:border-green-500 w-full md:w-64" />
                       </div>
                   </div>
 
-                  <div className="flex-1 bg-zinc-900/50 border border-zinc-800 rounded-xl overflow-hidden flex flex-col md:flex-row">
+                  <div className="flex-1 bg-zinc-900/50 backdrop-blur border border-zinc-800 rounded-xl overflow-hidden flex flex-col md:flex-row">
                       {/* Sidebar List */}
                       <div className="w-full md:w-1/3 border-r border-zinc-800 overflow-y-auto">
                           {MOCK_MESSAGES.map((msg) => (
@@ -228,7 +238,7 @@ function AppContent({ userRole, userStatus, onLogout, userName }: { userRole: Us
                           
                           <div className="flex-1 p-6 overflow-y-auto">
                               <p className="text-zinc-300 leading-relaxed whitespace-pre-wrap">{MOCK_MESSAGES[0].body}</p>
-                              <div className="mt-8 p-4 bg-zinc-900 rounded-lg border border-zinc-800 flex items-center gap-4">
+                              <div className="mt-8 p-4 bg-zinc-900/50 rounded-lg border border-zinc-800 flex items-center gap-4">
                                   <div className="bg-green-500/10 p-3 rounded-lg text-green-500">
                                       <CheckCircle2 size={24} />
                                   </div>
@@ -240,7 +250,7 @@ function AppContent({ userRole, userStatus, onLogout, userName }: { userRole: Us
                           </div>
 
                           <div className="p-4 border-t border-zinc-800 bg-zinc-900/50">
-                              <textarea placeholder="Escribe una respuesta..." className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-green-500 resize-none h-24"></textarea>
+                              <textarea placeholder="Escribe una respuesta..." className="w-full bg-zinc-950/50 border border-zinc-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-green-500 resize-none h-24"></textarea>
                               <div className="flex justify-end mt-2">
                                   <button className="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg text-sm font-bold transition">Enviar Respuesta</button>
                               </div>
