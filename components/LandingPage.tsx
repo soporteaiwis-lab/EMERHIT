@@ -1,22 +1,100 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { LOGO_URL } from '../assets';
-import { Radio, Mic2, TrendingUp, ArrowRight, CheckCircle2, Music, Play } from 'lucide-react';
+import { Radio, Mic2, TrendingUp, CheckCircle2, Music, Play, X, User } from 'lucide-react';
+import { UserRole } from '../types';
 
 interface LandingPageProps {
-  onEnterApp: (role: 'artist' | 'radio') => void;
+  onEnterApp: (role: UserRole, userName?: string) => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [registerRole, setRegisterRole] = useState<'artist' | 'radio' | null>(null);
+  const [formData, setFormData] = useState({ name: '', email: '' });
+
+  const handleOpenRegister = (role: 'artist' | 'radio') => {
+      setRegisterRole(role);
+      setShowRegisterModal(true);
+      setFormData({ name: '', email: '' });
+  };
+
+  const handleRegisterSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!registerRole) return;
+      
+      // Simulate API call and login
+      localStorage.setItem('emerhit_user', JSON.stringify({
+          name: formData.name,
+          role: registerRole,
+          email: formData.email
+      }));
+      
+      onEnterApp(registerRole, formData.name);
+      setShowRegisterModal(false);
+  };
+
   return (
     <div className="min-h-screen bg-zinc-950 text-white selection:bg-green-500/30 flex flex-col font-sans overflow-hidden">
       
+      {/* REGISTER MODAL */}
+      {showRegisterModal && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-fade-in">
+              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md shadow-2xl relative">
+                  <button onClick={() => setShowRegisterModal(false)} className="absolute top-4 right-4 text-zinc-500 hover:text-white">
+                      <X size={24} />
+                  </button>
+                  
+                  <div className="p-8">
+                      <div className="text-center mb-6">
+                          <div className={`w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4 ${registerRole === 'artist' ? 'bg-purple-500/20 text-purple-400' : 'bg-green-500/20 text-green-400'}`}>
+                              {registerRole === 'artist' ? <Mic2 size={32} /> : <Radio size={32} />}
+                          </div>
+                          <h2 className="text-2xl font-bold text-white">Registro {registerRole === 'artist' ? 'Artista' : 'Radio'}</h2>
+                          <p className="text-zinc-400 text-sm mt-1">Crea tu cuenta para comenzar</p>
+                      </div>
+
+                      <form onSubmit={handleRegisterSubmit} className="space-y-4">
+                          <div>
+                              <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Nombre {registerRole === 'artist' ? 'Artístico / Banda' : 'de la Emisora'}</label>
+                              <input 
+                                  type="text" 
+                                  required
+                                  value={formData.name}
+                                  onChange={e => setFormData({...formData, name: e.target.value})}
+                                  placeholder={registerRole === 'artist' ? "Ej: Los Prisioneros" : "Ej: Radio Futuro"}
+                                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-white focus:border-green-500 focus:outline-none"
+                              />
+                          </div>
+                          <div>
+                              <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Email de Contacto</label>
+                              <input 
+                                  type="email" 
+                                  required
+                                  value={formData.email}
+                                  onChange={e => setFormData({...formData, email: e.target.value})}
+                                  placeholder="contacto@ejemplo.com"
+                                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-white focus:border-green-500 focus:outline-none"
+                              />
+                          </div>
+                          <button type="submit" className="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg transition mt-4">
+                              Crear Cuenta
+                          </button>
+                      </form>
+                  </div>
+              </div>
+          </div>
+      )}
+
       {/* Navigation */}
       <nav className="absolute top-0 w-full z-50 border-b border-white/5 bg-transparent backdrop-blur-[2px]">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="w-8"></div> {/* Spacer to balance layout since logo moved */}
           <div className="flex gap-4">
-             <button onClick={() => onEnterApp('artist')} className="text-sm font-medium text-zinc-300 hover:text-white transition uppercase tracking-wide">Login</button>
-             <button onClick={() => onEnterApp('radio')} className="text-sm font-medium bg-white/10 backdrop-blur-md border border-white/20 text-white px-5 py-2 rounded-full hover:bg-white hover:text-black transition">Registrarse</button>
+             <button onClick={() => onEnterApp('admin')} className="hidden md:block text-xs text-zinc-600 hover:text-zinc-400 mr-4 mt-2">
+                 Acceso Corporativo
+             </button>
+             <button onClick={() => handleOpenRegister('artist')} className="text-sm font-medium text-zinc-300 hover:text-white transition uppercase tracking-wide">Login</button>
+             <button onClick={() => handleOpenRegister('radio')} className="text-sm font-medium bg-white/10 backdrop-blur-md border border-white/20 text-white px-5 py-2 rounded-full hover:bg-white hover:text-black transition">Registrarse</button>
           </div>
         </div>
       </nav>
@@ -60,14 +138,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
             <button 
-                onClick={() => onEnterApp('radio')}
+                onClick={() => handleOpenRegister('radio')}
                 className="w-full sm:w-auto bg-green-500 hover:bg-green-400 text-black text-lg font-bold px-10 py-5 rounded-full transition-all transform hover:scale-105 shadow-[0_0_40px_rgba(34,197,94,0.4)] flex items-center justify-center gap-3 group"
             >
                 <Radio size={24} className="group-hover:-rotate-12 transition-transform duration-300" />
                 ¿Tienes una Radio?
             </button>
             <button 
-                onClick={() => onEnterApp('artist')}
+                onClick={() => handleOpenRegister('artist')}
                 className="w-full sm:w-auto bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border border-white/20 hover:border-white/40 text-lg font-medium px-10 py-5 rounded-full transition-all flex items-center justify-center gap-3 group"
             >
                 <Mic2 size={24} className="group-hover:scale-110 transition-transform" />
@@ -76,11 +154,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
           </div>
         </div>
 
-        {/* Scroll Indicator */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce text-zinc-500">
-            <div className="w-6 h-10 border-2 border-zinc-600 rounded-full flex justify-center pt-2">
-                <div className="w-1 h-2 bg-green-500 rounded-full"></div>
-            </div>
+        {/* Admin Login Shortcut for Demo */}
+        <div className="absolute bottom-4 right-4 z-50">
+             <button onClick={() => onEnterApp('admin')} className="text-[10px] text-zinc-700 hover:text-zinc-500 flex items-center gap-1 opacity-50 hover:opacity-100 transition">
+                 <User size={10} /> Admin Login
+             </button>
         </div>
       </section>
 

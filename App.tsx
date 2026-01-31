@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PlayerProvider } from './components/PlayerContext';
 import { Navbar } from './components/Header';
 import { Sidebar } from './components/Sidebar';
@@ -6,14 +6,23 @@ import { Player } from './components/Player';
 import { RadioDiscovery } from './components/RadioDiscovery';
 import { ArtistProfile } from './components/ArtistProfile';
 import { LandingPage } from './components/LandingPage';
+import { AdminDashboard } from './components/AdminDashboard';
+import { MyTracks } from './components/MyTracks';
 import { MOCK_ARTISTS, MOCK_MESSAGES, ALL_EVENTS } from './constants';
-import { ViewState, Artist } from './types';
-import { Calendar, MapPin, Ticket, MessageSquare, Clock, CheckCircle2, Search, Filter } from 'lucide-react';
+import { ViewState, Artist, UserRole } from './types';
+import { Calendar, MapPin, Ticket, MessageSquare, Clock, CheckCircle2, Search, Download } from 'lucide-react';
 
-function AppContent({ userRole, onLogout }: { userRole: 'artist' | 'radio', onLogout: () => void }) {
+function AppContent({ userRole, onLogout, userName }: { userRole: UserRole, onLogout: () => void, userName?: string }) {
   const [currentView, setCurrentView] = useState<ViewState>('discovery');
   const [selectedArtist, setSelectedArtist] = useState<Artist>(MOCK_ARTISTS[0]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Default view based on role
+  useEffect(() => {
+    if (userRole === 'admin') setCurrentView('admin_dashboard');
+    else if (userRole === 'radio') setCurrentView('discovery');
+    else setCurrentView('discovery'); // Artist default
+  }, [userRole]);
 
   const handleSelectArtist = (artist: Artist) => {
     setSelectedArtist(artist);
@@ -33,14 +42,14 @@ function AppContent({ userRole, onLogout }: { userRole: 'artist' | 'radio', onLo
 
       {/* Sidebar for Desktop */}
       <div className="hidden md:block h-full z-10">
-        <Sidebar currentView={currentView} setView={handleSetView} />
+        <Sidebar currentView={currentView} setView={handleSetView} userRole={userRole} onLogout={onLogout} />
       </div>
 
       {/* Mobile Sidebar Overlay */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 md:hidden bg-black/50 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}>
             <div className="w-64 h-full bg-zinc-950 shadow-2xl animate-slide-in-left" onClick={e => e.stopPropagation()}>
-                <Sidebar currentView={currentView} setView={handleSetView} />
+                <Sidebar currentView={currentView} setView={handleSetView} userRole={userRole} onLogout={onLogout} />
             </div>
         </div>
       )}
@@ -51,6 +60,22 @@ function AppContent({ userRole, onLogout }: { userRole: 'artist' | 'radio', onLo
         
         <main className="flex-1 overflow-y-auto pb-24 scroll-smooth">
           <div className="min-h-full">
+            {/* --- ADMIN VIEWS --- */}
+            {currentView === 'admin_dashboard' && <AdminDashboard />}
+
+            {/* --- ARTIST VIEWS --- */}
+            {currentView === 'my_tracks' && <MyTracks />}
+
+            {/* --- RADIO VIEWS --- */}
+            {currentView === 'radio_downloads' && (
+                <div className="flex flex-col items-center justify-center h-[60vh] text-zinc-500 p-8 text-center animate-fade-in">
+                    <Download size={64} className="mb-4 text-green-500" />
+                    <h2 className="text-xl font-bold text-white mb-2">Historial de Descargas</h2>
+                    <p>Aquí aparecerán las canciones que has descargado para tu emisora.</p>
+                </div>
+            )}
+
+            {/* --- SHARED VIEWS --- */}
             {currentView === 'discovery' && (
               <RadioDiscovery artists={MOCK_ARTISTS} onSelectArtist={handleSelectArtist} />
             )}
@@ -109,9 +134,11 @@ function AppContent({ userRole, onLogout }: { userRole: 'artist' | 'radio', onLo
                   <div className="mb-6 flex justify-between items-center">
                       <div>
                         <h1 className="text-3xl font-bold text-white mb-1 flex items-center gap-3">
-                            <MessageSquare className="text-green-500" /> Mensajería
+                            <MessageSquare className="text-green-500" /> Mensajería {userRole === 'admin' && "(Soporte)"}
                         </h1>
-                        <p className="text-zinc-400 text-sm">Gestiona tus comunicaciones con radios y artistas.</p>
+                        <p className="text-zinc-400 text-sm">
+                            {userRole === 'radio' ? 'Contacta artistas o al soporte técnico.' : 'Gestiona tus comunicaciones.'}
+                        </p>
                       </div>
                       <div className="relative">
                           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
@@ -187,15 +214,35 @@ function AppContent({ userRole, onLogout }: { userRole: 'artist' | 'radio', onLo
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userRole, setUserRole] = useState<'artist' | 'radio'>('radio');
+  const [userRole, setUserRole] = useState<UserRole>('artist');
+  const [userName, setUserName] = useState('Usuario');
 
-  const handleLogin = (role: 'artist' | 'radio') => {
+  // Load from local storage on mount
+  useEffect(() => {
+      const storedUser = localStorage.getItem('emerhit_user');
+      if (storedUser) {
+          const parsed = JSON.parse(storedUser);
+          setUserName(parsed.name);
+          setUserRole(parsed.role);
+          setIsAuthenticated(true);
+      }
+  }, []);
+
+  const handleLogin = (role: UserRole, name: string = 'Usuario') => {
     setUserRole(role);
+    setUserName(name);
     setIsAuthenticated(true);
+    
+    // If it's admin, we set a temporary session
+    if (role === 'admin') {
+        localStorage.setItem('emerhit_user', JSON.stringify({ name: 'Admin Corporativo', role: 'admin' }));
+    }
   };
 
   const handleLogout = () => {
+    localStorage.removeItem('emerhit_user');
     setIsAuthenticated(false);
+    setUserRole('artist'); // reset to default
   };
 
   if (!isAuthenticated) {
@@ -204,7 +251,7 @@ export default function App() {
 
   return (
     <PlayerProvider>
-      <AppContent userRole={userRole} onLogout={handleLogout} />
+      <AppContent userRole={userRole} onLogout={handleLogout} userName={userName} />
     </PlayerProvider>
   );
 }

@@ -2,13 +2,13 @@
 
 export interface SocialLinks {
   instagram?: string;
-  tiktok?: string; // New requirement
+  tiktok?: string;
   website?: string;
   spotify?: string;
   twitter?: string;
 }
 
-export type UserRole = 'artist' | 'radio';
+export type UserRole = 'artist' | 'radio' | 'admin';
 
 export interface UserBase {
   id: string;
@@ -19,7 +19,7 @@ export interface UserBase {
   location: {
     city: string;
     country: string;
-    display: string; // "Santiago, Chile"
+    display: string;
   };
 }
 
@@ -28,50 +28,54 @@ export interface Artist extends UserBase {
   bio: string;
   genre: string;
   coverImageUrl: string;
-  paymentStatus: 'free' | 'premium'; // New requirement
+  paymentStatus: 'free' | 'premium';
   socials: SocialLinks;
-  tracks: Track[]; // UI convenience, referenced by ID in DB
-  events: Event[]; // UI convenience
+  tracks: Track[];
+  events: Event[];
 }
 
 export interface RadioStation extends UserBase {
   role: 'radio';
-  frequency: string; // e.g. "98.5 FM" - New requirement
-  licenseType: 'community' | 'commercial' | 'online'; // New requirement
+  frequency: string;
+  licenseType: 'community' | 'commercial' | 'online';
   genreFocus: string[];
+}
+
+export interface AdminUser extends UserBase {
+    role: 'admin';
 }
 
 // --- CONTENT ENTITIES ---
 
-export interface Track { // Renamed from Song to match 'tracks' collection
+export interface Track {
   id: string;
   artistId: string;
-  artistName: string; // Denormalized
+  artistName: string;
   title: string;
   duration: string;
-  coverUrl: string; // cover_image
-  mp3Url: string;   // New requirement: actual audio source
+  coverUrl: string;
+  mp3Url: string;
   genre: string;
 }
 
 export interface Event {
   id: string;
   artistId: string;
-  title: string; // titulo_evento
+  title: string;
   date: string;
-  location: { // ubicacion
+  location: {
     city: string;
     country: string;
     venue: string;
   };
   description: string;
-  ticketLink?: string; // link_tickets
-  flyerUrl?: string;   // flyer_img - New requirement
+  ticketLink?: string;
+  flyerUrl?: string;
 }
 
 export interface Message {
   id: string;
-  senderId: string; // Artist ID or Radio ID
+  senderId: string;
   receiverId: string;
   subject: string;
   body: string;
@@ -79,4 +83,4 @@ export interface Message {
   readStatus: boolean;
 }
 
-export type ViewState = 'discovery' | 'artist_profile' | 'messages' | 'events';
+export type ViewState = 'discovery' | 'artist_profile' | 'messages' | 'events' | 'my_tracks' | 'admin_dashboard' | 'radio_downloads';
